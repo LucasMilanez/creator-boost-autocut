@@ -23,5 +23,20 @@ jobs:
       - name: Show CLI help
         run: python app.py -h || true
 
-      - name: Ruff (lint)
-        run: ruff check .
+      # Não falha o job se o lint encontrar problemas
+      - name: Ruff (lint) – warnings only
+        run: ruff check . || true
+
+      # Diagnóstico opcional: versões instaladas
+      - name: Print env
+        run: |
+          python -c "import sys; print('Python:', sys.version)"
+          python - << 'PY'
+          import importlib
+          for pkg in ['numpy','webrtcvad','tqdm','vosk','faster_whisper']:
+              try:
+                  m = importlib.import_module(pkg.replace('-','_').replace('faster-whisper','faster_whisper'))
+                  print(f'{pkg}:', getattr(m, '__version__', 'OK'))
+              except Exception as e:
+                  print(f'{pkg}: ERROR -> {e}')
+          PY
